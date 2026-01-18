@@ -24,22 +24,24 @@ VALUES (SEQ_ROLE_ID.NEXTVAL, 'GUEST', '게스트 사용자 역할', 'Y', 'SYSTEM
 
 -- ============================================================================
 -- 2. 사용자 데이터 삽입 (Insert User Data)
+-- 주의: 패스워드 해시는 예시용입니다. 실제 환경에서는 bcrypt, scrypt, Argon2 등
+--       강력한 해싱 알고리즘을 사용하고 솔트를 추가해야 합니다.
 -- ============================================================================
 
 INSERT INTO USERS (USER_ID, USERNAME, PASSWORD_HASH, EMAIL, FULL_NAME, PHONE_NUMBER, DEPARTMENT, POSITION, IS_ACTIVE, CREATED_BY)
-VALUES (SEQ_USER_ID.NEXTVAL, 'admin', 'e10adc3949ba59abbe56e057f20f883e', 'admin@company.com', '김관리', '010-1111-2222', '정보보안팀', '팀장', 'Y', 'SYSTEM');
+VALUES (SEQ_USER_ID.NEXTVAL, 'admin', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYIr.9U6FMe', 'admin@company.com', '김관리', '010-1111-2222', '정보보안팀', '팀장', 'Y', 'SYSTEM');
 
 INSERT INTO USERS (USER_ID, USERNAME, PASSWORD_HASH, EMAIL, FULL_NAME, PHONE_NUMBER, DEPARTMENT, POSITION, IS_ACTIVE, CREATED_BY)
-VALUES (SEQ_USER_ID.NEXTVAL, 'security01', 'f0f3a2b25f4c2d0e6c8d9b7a1e5f4c3d', 'security01@company.com', '이보안', '010-2222-3333', '정보보안팀', '과장', 'Y', 'SYSTEM');
+VALUES (SEQ_USER_ID.NEXTVAL, 'security01', '$2a$12$R9h/cIPz0gi.URNNX3kh2OPST9/PgBkqquzi.Ss7KIUgO2t0jWMUW', 'security01@company.com', '이보안', '010-2222-3333', '정보보안팀', '과장', 'Y', 'SYSTEM');
 
 INSERT INTO USERS (USER_ID, USERNAME, PASSWORD_HASH, EMAIL, FULL_NAME, PHONE_NUMBER, DEPARTMENT, POSITION, IS_ACTIVE, CREATED_BY)
-VALUES (SEQ_USER_ID.NEXTVAL, 'auditor01', 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6', 'auditor01@company.com', '박감사', '010-3333-4444', '감사팀', '대리', 'Y', 'SYSTEM');
+VALUES (SEQ_USER_ID.NEXTVAL, 'auditor01', '$2a$12$NyVH1w/xKqfC/iHTJHb8e.K0xHJN8oPP8I3Y8fQrJjK3zP8nQ9YeS', 'auditor01@company.com', '박감사', '010-3333-4444', '감사팀', '대리', 'Y', 'SYSTEM');
 
 INSERT INTO USERS (USER_ID, USERNAME, PASSWORD_HASH, EMAIL, FULL_NAME, PHONE_NUMBER, DEPARTMENT, POSITION, IS_ACTIVE, CREATED_BY)
-VALUES (SEQ_USER_ID.NEXTVAL, 'user01', 'p6o5n4m3l2k1j0i9h8g7f6e5d4c3b2a1', 'user01@company.com', '최사용', '010-4444-5555', '개발팀', '사원', 'Y', 'SYSTEM');
+VALUES (SEQ_USER_ID.NEXTVAL, 'user01', '$2a$12$HdKL5ynFJCDJ8T8u8pQsIOSLp5rNVqLqhB6fRp7xZ9R3qY8YuF8Pe', 'user01@company.com', '최사용', '010-4444-5555', '개발팀', '사원', 'Y', 'SYSTEM');
 
 INSERT INTO USERS (USER_ID, USERNAME, PASSWORD_HASH, EMAIL, FULL_NAME, PHONE_NUMBER, DEPARTMENT, POSITION, IS_ACTIVE, CREATED_BY)
-VALUES (SEQ_USER_ID.NEXTVAL, 'user02', '5f4e3d2c1b0a9f8e7d6c5b4a3e2d1c0b', 'user02@company.com', '정일반', '010-5555-6666', '영업팀', '사원', 'Y', 'SYSTEM');
+VALUES (SEQ_USER_ID.NEXTVAL, 'user02', '$2a$12$VqJNc7xJ3Y9q8p9K5L3M8eP7R9S4T8U6V2W1X5Y4Z3A1B2C3D4E5F', 'user02@company.com', '정일반', '010-5555-6666', '영업팀', '사원', 'Y', 'SYSTEM');
 
 -- ============================================================================
 -- 3. 사용자-역할 매핑 삽입 (Insert User-Role Mapping)

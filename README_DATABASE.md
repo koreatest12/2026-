@@ -549,10 +549,12 @@ SELECT index_name, table_name FROM user_indexes ORDER BY table_name, index_name;
 
 ### 1. 패스워드 저장
 - **절대 평문으로 저장하지 마세요**
-- SHA-256 이상의 해시 알고리즘 사용
-- Salt 추가 권장
-- 예시 (PL/SQL):
+- **bcrypt, scrypt, Argon2 등의 강력한 해싱 알고리즘 사용 권장**
+- **SHA-256과 같은 단순 해시 함수는 레인보우 테이블 공격에 취약하므로 사용 금지**
+- Salt 추가 필수 (각 사용자마다 고유한 salt 사용)
+- 예시 (PL/SQL with DBMS_CRYPTO는 교육용이며, 실제로는 bcrypt 등 사용):
 ```sql
+-- 주의: 이 예시는 교육 목적입니다. 실제 환경에서는 bcrypt, scrypt, Argon2를 사용하세요
 CREATE OR REPLACE FUNCTION HASH_PASSWORD(p_password VARCHAR2, p_salt VARCHAR2)
 RETURN VARCHAR2 IS
 BEGIN
@@ -562,6 +564,12 @@ BEGIN
     );
 END;
 ```
+
+**실제 운영 환경 권장사항:**
+- 애플리케이션 레이어에서 bcrypt (cost factor 12 이상) 사용
+- 또는 scrypt, Argon2 등 메모리 하드 알고리즘 사용
+- PBKDF2를 사용할 경우 최소 100,000 iterations 설정
+- 각 사용자마다 고유한 랜덤 salt 생성 및 저장
 
 ### 2. 권한 관리
 - 최소 권한 원칙 적용
