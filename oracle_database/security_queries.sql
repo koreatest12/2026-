@@ -1,11 +1,14 @@
-# Oracle Database 보안 관련 SQL 쿼리 모음
+-- ============================================
+-- Oracle Database 보안 관련 SQL 쿼리 모음
+-- 정보보안기사 시험 대비 실무 쿼리
+-- ============================================
 
-## 정보보안기사 시험 대비 실무 쿼리
+-- ============================================
+-- 1. 사용자 및 권한 관리 쿼리
+-- ============================================
 
-### 1. 사용자 및 권한 관리 쿼리
+-- 모든 사용자 목록 및 상태
 
-#### 모든 사용자 목록 및 상태
-```sql
 SELECT 
     username,
     account_status,
@@ -16,10 +19,9 @@ SELECT
     created
 FROM dba_users
 ORDER BY created DESC;
-```
 
-#### 특정 사용자의 모든 권한 조회
-```sql
+
+-- 특정 사용자의 모든 권한 조회
 -- 시스템 권한
 SELECT 'SYSTEM PRIVILEGE' AS privilege_type, privilege
 FROM dba_sys_privs
@@ -35,10 +37,10 @@ SELECT 'OBJECT PRIVILEGE' AS privilege_type, privilege || ' ON ' || owner || '.'
 FROM dba_tab_privs
 WHERE grantee = '&USERNAME'
 ORDER BY privilege_type, privilege;
-```
 
-#### 역할별 권한 계층 구조
-```sql
+
+-- 역할별 권한 계층 구조
+
 SELECT 
     LPAD(' ', 2 * (LEVEL - 1)) || granted_role AS role_hierarchy,
     grantee,
@@ -52,12 +54,12 @@ FROM (
 )
 START WITH grantee = '&ROLE_NAME'
 CONNECT BY PRIOR granted_role = grantee;
-```
 
-### 2. 감사 분석 쿼리
 
-#### 최근 로그인 실패 시도
-```sql
+-- 2. 감사 분석 쿼리
+
+-- 최근 로그인 실패 시도
+
 SELECT 
     username,
     os_username,
@@ -72,10 +74,10 @@ WHERE action_name = 'LOGON'
 AND returncode != 0
 AND timestamp >= SYSDATE - 7
 ORDER BY timestamp DESC;
-```
 
-#### 사용자별 활동 통계 (최근 7일)
-```sql
+
+-- 사용자별 활동 통계 (최근 7일)
+
 SELECT 
     username,
     action_name,
@@ -87,10 +89,10 @@ WHERE timestamp >= SYSDATE - 7
 GROUP BY username, action_name
 HAVING COUNT(*) > 10
 ORDER BY action_count DESC;
-```
 
-#### DDL 변경 이력
-```sql
+
+-- DDL 변경 이력
+
 SELECT 
     username,
     obj_name,
@@ -103,10 +105,10 @@ WHERE action_name IN ('CREATE TABLE', 'ALTER TABLE', 'DROP TABLE',
                       'CREATE USER', 'ALTER USER', 'DROP USER')
 AND timestamp >= SYSDATE - 30
 ORDER BY timestamp DESC;
-```
 
-#### 의심스러운 권한 부여/회수 활동
-```sql
+
+-- 의심스러운 권한 부여/회수 활동
+
 SELECT 
     username,
     obj_name,
@@ -117,12 +119,12 @@ FROM dba_audit_trail
 WHERE action_name IN ('GRANT', 'REVOKE')
 AND timestamp >= SYSDATE - 7
 ORDER BY timestamp DESC;
-```
 
-### 3. 보안 취약점 점검 쿼리
 
-#### 기본 패스워드를 사용하는 계정
-```sql
+-- 3. 보안 취약점 점검 쿼리
+
+-- 기본 패스워드를 사용하는 계정
+
 SELECT 
     u.username,
     u.account_status,
@@ -134,10 +136,10 @@ WHERE username IN (
     FROM dba_users_with_defpwd
 )
 ORDER BY u.created DESC;
-```
 
-#### 패스워드가 만료되지 않는 계정
-```sql
+
+-- 패스워드가 만료되지 않는 계정
+
 SELECT 
     username,
     account_status,
@@ -147,10 +149,10 @@ FROM dba_users
 WHERE expiry_date IS NULL
 OR expiry_date > SYSDATE + 365
 ORDER BY username;
-```
 
-#### 과도한 권한을 가진 사용자 (ANY 권한)
-```sql
+
+-- 과도한 권한을 가진 사용자 (ANY 권한)
+
 SELECT 
     grantee,
     privilege,
@@ -159,10 +161,10 @@ FROM dba_sys_privs
 WHERE privilege LIKE '%ANY%'
 AND grantee NOT IN ('SYS', 'SYSTEM', 'DBA', 'IMP_FULL_DATABASE', 'EXP_FULL_DATABASE')
 ORDER BY grantee, privilege;
-```
 
-#### PUBLIC에 부여된 위험한 권한
-```sql
+
+-- PUBLIC에 부여된 위험한 권한
+
 SELECT 
     'SYSTEM' AS priv_type,
     privilege,
@@ -177,10 +179,10 @@ SELECT
 FROM dba_tab_privs
 WHERE grantee = 'PUBLIC'
 ORDER BY priv_type, privilege;
-```
 
-#### 계정 잠금 정책이 없는 프로파일
-```sql
+
+-- 계정 잠금 정책이 없는 프로파일
+
 SELECT 
     profile,
     resource_name,
@@ -190,12 +192,12 @@ WHERE resource_type = 'PASSWORD'
 AND resource_name = 'FAILED_LOGIN_ATTEMPTS'
 AND (limit = 'UNLIMITED' OR limit = 'DEFAULT')
 ORDER BY profile;
-```
 
-### 4. 세션 및 잠금 모니터링 쿼리
 
-#### 현재 활성 세션 및 실행 중인 SQL
-```sql
+-- 4. 세션 및 잠금 모니터링 쿼리
+
+-- 현재 활성 세션 및 실행 중인 SQL
+
 SELECT 
     s.sid,
     s.serial#,
@@ -212,10 +214,10 @@ LEFT JOIN v$sql q ON s.sql_id = q.sql_id
 WHERE s.username IS NOT NULL
 AND s.status = 'ACTIVE'
 ORDER BY s.last_call_et DESC;
-```
 
-#### 블로킹 세션 조회 (데드락 분석)
-```sql
+
+-- 블로킹 세션 조회 (데드락 분석)
+
 SELECT 
     s1.username AS blocking_user,
     s1.sid AS blocking_sid,
@@ -236,10 +238,10 @@ LEFT JOIN v$locked_object lo ON s2.sid = lo.session_id
 LEFT JOIN dba_objects do ON lo.object_id = do.object_id
 WHERE s1.blocking_session IS NULL
 ORDER BY s2.seconds_in_wait DESC;
-```
 
-#### 장기 실행 세션
-```sql
+
+-- 장기 실행 세션
+
 SELECT 
     s.sid,
     s.serial#,
@@ -254,12 +256,12 @@ LEFT JOIN v$sql q ON s.sql_id = q.sql_id
 WHERE s.username IS NOT NULL
 AND (SYSDATE - s.logon_time) * 24 * 60 > 60  -- 1시간 이상
 ORDER BY session_duration_minutes DESC;
-```
 
-### 5. 암호화 및 민감 데이터 관리 쿼리
 
-#### 암호화된 테이블스페이스 목록
-```sql
+-- 5. 암호화 및 민감 데이터 관리 쿼리
+
+-- 암호화된 테이블스페이스 목록
+
 SELECT 
     tablespace_name,
     encrypted,
@@ -270,10 +272,10 @@ SELECT
 FROM dba_tablespaces
 WHERE encrypted = 'YES'
 ORDER BY tablespace_name;
-```
 
-#### 암호화된 컬럼 목록
-```sql
+
+-- 암호화된 컬럼 목록
+
 SELECT 
     owner,
     table_name,
@@ -283,10 +285,10 @@ SELECT
     integrity_alg
 FROM dba_encrypted_columns
 ORDER BY owner, table_name, column_name;
-```
 
-#### Wallet 상태 확인
-```sql
+
+-- Wallet 상태 확인
+
 SELECT 
     wrl_type,
     wrl_parameter,
@@ -295,12 +297,12 @@ SELECT
     wallet_order,
     fully_backed_up
 FROM v$encryption_wallet;
-```
 
-### 6. 네트워크 보안 쿼리
 
-#### 세션별 암호화 상태
-```sql
+-- 6. 네트워크 보안 쿼리
+
+-- 세션별 암호화 상태
+
 SELECT 
     s.sid,
     s.serial#,
@@ -315,10 +317,10 @@ WHERE s.username IS NOT NULL
 AND sci.network_service_banner LIKE '%Encryption%'
 OR sci.network_service_banner LIKE '%Crypto%'
 ORDER BY s.username;
-```
 
-#### 클라이언트 IP 주소별 접속 현황
-```sql
+
+-- 클라이언트 IP 주소별 접속 현황
+
 SELECT 
     machine,
     COUNT(*) AS connection_count,
@@ -329,12 +331,12 @@ FROM v$session
 WHERE username IS NOT NULL
 GROUP BY machine
 ORDER BY connection_count DESC;
-```
 
-### 7. 리소스 사용량 및 할당량 쿼리
 
-#### 테이블스페이스 할당량 사용 현황
-```sql
+-- 7. 리소스 사용량 및 할당량 쿼리
+
+-- 테이블스페이스 할당량 사용 현황
+
 SELECT 
     username,
     tablespace_name,
@@ -346,10 +348,10 @@ SELECT
     END AS usage_percent
 FROM dba_ts_quotas
 ORDER BY bytes DESC;
-```
 
-#### 사용자별 객체 및 공간 사용량
-```sql
+
+-- 사용자별 객체 및 공간 사용량
+
 SELECT 
     owner,
     COUNT(*) AS object_count,
@@ -358,12 +360,12 @@ FROM dba_segments
 WHERE owner NOT IN ('SYS', 'SYSTEM', 'XDB', 'MDSYS', 'CTXSYS', 'WMSYS')
 GROUP BY owner
 ORDER BY total_mb DESC;
-```
 
-### 8. 정책 및 컴플라이언스 쿼리
 
-#### VPD/RLS 정책 목록
-```sql
+-- 8. 정책 및 컴플라이언스 쿼리
+
+-- VPD/RLS 정책 목록
+
 SELECT 
     object_owner,
     object_name,
@@ -377,10 +379,10 @@ SELECT
     policy_type
 FROM dba_policies
 ORDER BY object_owner, object_name, policy_name;
-```
 
-#### FGA 정책 목록 및 설정
-```sql
+
+-- FGA 정책 목록 및 설정
+
 SELECT 
     object_schema,
     object_name,
@@ -392,10 +394,10 @@ SELECT
     enabled
 FROM dba_audit_policies
 ORDER BY object_schema, object_name, policy_name;
-```
 
-#### 프로파일별 리소스 및 패스워드 제한
-```sql
+
+-- 프로파일별 리소스 및 패스워드 제한
+
 SELECT 
     profile,
     resource_type,
@@ -404,12 +406,12 @@ SELECT
 FROM dba_profiles
 WHERE profile != 'DEFAULT'
 ORDER BY profile, resource_type, resource_name;
-```
 
-### 9. 성능 및 통계 쿼리
 
-#### 가장 많이 실행된 SQL (Top 20)
-```sql
+-- 9. 성능 및 통계 쿼리
+
+-- 가장 많이 실행된 SQL (Top 20)
+
 SELECT 
     sql_id,
     executions,
@@ -424,10 +426,10 @@ FROM v$sqlarea
 WHERE executions > 0
 ORDER BY executions DESC
 FETCH FIRST 20 ROWS ONLY;
-```
 
-#### 비효율적인 SQL (Full Table Scan)
-```sql
+
+-- 비효율적인 SQL (Full Table Scan)
+
 SELECT DISTINCT
     s.sql_id,
     s.executions,
@@ -442,12 +444,12 @@ AND t.options = 'FULL'
 AND s.executions > 100
 ORDER BY s.buffer_gets DESC
 FETCH FIRST 20 ROWS ONLY;
-```
 
-### 10. 백업 및 복구 보안 쿼리
 
-#### RMAN 백업 이력
-```sql
+-- 10. 백업 및 복구 보안 쿼리
+
+-- RMAN 백업 이력
+
 SELECT 
     session_key,
     input_type,
@@ -460,12 +462,12 @@ SELECT
 FROM v$rman_backup_job_details
 WHERE start_time >= SYSDATE - 30
 ORDER BY start_time DESC;
-```
 
-## 보안 모니터링 대시보드 쿼리
 
-### 종합 보안 대시보드
-```sql
+-- 보안 모니터링 대시보드 쿼리
+
+-- 종합 보안 대시보드
+
 SELECT '활성 세션 수' AS metric, TO_CHAR(COUNT(*)) AS value
 FROM v$session WHERE status = 'ACTIVE' AND username IS NOT NULL
 UNION ALL
@@ -488,9 +490,9 @@ FROM dba_audit_policies WHERE enabled = 'YES'
 UNION ALL
 SELECT '암호화된 컬럼 수', TO_CHAR(COUNT(*))
 FROM dba_encrypted_columns;
-```
 
-## 참고사항
+
+-- 참고사항
 - 이 쿼리들은 DBA 또는 적절한 SELECT 권한이 필요합니다
 - 프로덕션 환경에서는 성능 영향을 고려하여 실행하세요
 - 정기적인 보안 점검 스크립트로 활용 가능합니다
